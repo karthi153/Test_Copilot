@@ -1,0 +1,227 @@
+{
+  "TestCases": [
+    {
+      "TestCaseID": "API_SPTermRDS_Positive_01",
+      "Title": "Valid Termination for Vested Rep",
+      "TestType": "Positive",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1001",
+        "P_REP_NUMBER": "2001",
+        "P_TERM_STOP_PAYMENT_DATE": "2025-07-01",
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 200,
+      "ExpectedOutputOrValidation": {
+        "EFFECTIVE_TO_DATE": "2025-07-01",
+        "STATUS_IND": 60,
+        "LAST_MOD_ID": "testuser"
+      },
+      "RemarksOrNotes": "Vested rep, all updates should succeed."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_Positive_02",
+      "Title": "Valid Termination for Non-Vested Rep",
+      "TestType": "Positive",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1002",
+        "P_REP_NUMBER": "2002",
+        "P_TERM_STOP_PAYMENT_DATE": "2025-07-01",
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 200,
+      "ExpectedOutputOrValidation": {
+        "EFFECTIVE_TO_DATE": "2025-07-01",
+        "STATUS_IND": 60,
+        "LAST_MOD_ID": "testuser"
+      },
+      "RemarksOrNotes": "Non-vested rep, status and date updated."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_Negative_01",
+      "Title": "Invalid REP_NUMBER",
+      "TestType": "Negative",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1001",
+        "P_REP_NUMBER": "INVALID",
+        "P_TERM_STOP_PAYMENT_DATE": "2025-07-01",
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 400,
+      "ExpectedOutputOrValidation": {
+        "error": "REP_NUMBER not found"
+      },
+      "RemarksOrNotes": "Should return error for invalid rep number."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_Negative_02",
+      "Title": "Missing Required Parameter",
+      "TestType": "Negative",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1001",
+        "P_REP_NUMBER": "2001",
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 422,
+      "ExpectedOutputOrValidation": {
+        "error": "P_TERM_STOP_PAYMENT_DATE is required"
+      },
+      "RemarksOrNotes": "Should fail due to missing date parameter."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_Edge_01",
+      "Title": "Termination Date in the Past",
+      "TestType": "Edge",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1001",
+        "P_REP_NUMBER": "2001",
+        "P_TERM_STOP_PAYMENT_DATE": "2000-01-01",
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 200,
+      "ExpectedOutputOrValidation": {
+        "EFFECTIVE_TO_DATE": "2000-01-01"
+      },
+      "RemarksOrNotes": "Should handle past dates gracefully."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_Edge_02",
+      "Title": "Termination Date is Null",
+      "TestType": "Edge",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1001",
+        "P_REP_NUMBER": "2001",
+        "P_TERM_STOP_PAYMENT_DATE": null,
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 422,
+      "ExpectedOutputOrValidation": {
+        "error": "P_TERM_STOP_PAYMENT_DATE cannot be null"
+      },
+      "RemarksOrNotes": "Should reject null date."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_Exception_01",
+      "Title": "Database Connection Failure",
+      "TestType": "Exception",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1001",
+        "P_REP_NUMBER": "2001",
+        "P_TERM_STOP_PAYMENT_DATE": "2025-07-01",
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 500,
+      "ExpectedOutputOrValidation": {
+        "error": "Database connection error"
+      },
+      "RemarksOrNotes": "Simulate DB failure."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_Security_01",
+      "Title": "Unauthorized Access - No Token",
+      "TestType": "Security",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1001",
+        "P_REP_NUMBER": "2001",
+        "P_TERM_STOP_PAYMENT_DATE": "2025-07-01",
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 401,
+      "ExpectedOutputOrValidation": {
+        "error": "Unauthorized"
+      },
+      "RemarksOrNotes": "No authentication token provided."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_Security_02",
+      "Title": "Forbidden Access - Insufficient Permissions",
+      "TestType": "Security",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1001",
+        "P_REP_NUMBER": "2001",
+        "P_TERM_STOP_PAYMENT_DATE": "2025-07-01",
+        "P_USER": "unauthorized_user"
+      },
+      "ExpectedHTTPStatusCode": 403,
+      "ExpectedOutputOrValidation": {
+        "error": "Forbidden"
+      },
+      "RemarksOrNotes": "User does not have permission."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_Security_03",
+      "Title": "Invalid Token",
+      "TestType": "Security",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1001",
+        "P_REP_NUMBER": "2001",
+        "P_TERM_STOP_PAYMENT_DATE": "2025-07-01",
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 401,
+      "ExpectedOutputOrValidation": {
+        "error": "Invalid authentication token"
+      },
+      "RemarksOrNotes": "Invalid or expired token."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_FieldValidation_01",
+      "Title": "Invalid Date Format",
+      "TestType": "Negative",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "1001",
+        "P_REP_NUMBER": "2001",
+        "P_TERM_STOP_PAYMENT_DATE": "07-01-2025",
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 422,
+      "ExpectedOutputOrValidation": {
+        "error": "Invalid date format"
+      },
+      "RemarksOrNotes": "Date should be in YYYY-MM-DD format."
+    },
+    {
+      "TestCaseID": "API_SPTermRDS_FieldValidation_02",
+      "Title": "Non-numeric BD",
+      "TestType": "Negative",
+      "Input": {
+        "ProcedureName": "SP_TERM_RDS",
+        "P_BD": "ABC",
+        "P_REP_NUMBER": "2001",
+        "P_TERM_STOP_PAYMENT_DATE": "2025-07-01",
+        "P_USER": "testuser"
+      },
+      "ExpectedHTTPStatusCode": 422,
+      "ExpectedOutputOrValidation": {
+        "error": "P_BD must be numeric"
+      },
+      "RemarksOrNotes": "BD should be a valid number."
+    }
+  ],
+  "ResponseStructure": {
+    "success": "boolean",
+    "data": {
+      "EFFECTIVE_TO_DATE": "string",
+      "STATUS_IND": "integer",
+      "LAST_MOD_ID": "string"
+    },
+    "error": {
+      "code": "string",
+      "message": "string"
+    }
+  },
+  "HeaderResponses": {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer <token>"
+  }
+}
